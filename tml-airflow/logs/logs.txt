@@ -7303,3 +7303,26 @@ branch.main.remote=origin
 branch.main.merge=refs/heads/main
 [INFO 2024-11-07_21:34:16] TML Solution Studio: Github Remote Status: origin	https://github.com/navdeeptura/raspberrypi (fetch)
 origin	https://<personal access token hidden>@github.com/navdeeptura/raspberrypi.git (push)
+[INFO 2024-11-07_21:34:50] TML Solution Studio: TML Project Creation: Creating new TML project: /raspberrypi/tml-airflow/dags/tml-solutions/myawesometmlsolution-3f10-11f8
+[INFO 2024-11-07_21:34:50] TML Solution Studio: git pull --rebase --autostash origin main Status: From https://github.com/navdeeptura/raspberrypi
+ * branch            main       -> FETCH_HEAD
+Already up to date.
+[INFO 2024-11-07_21:35:29] TML Solution Studio: Starting Git commit process for project: myawesometmlsolution-3f10-11f8
+[INFO 2024-11-07_21:35:29] TML Solution Studio: git commit -a Status for project myawesometmlsolution-3f10-11f8: fatal: paths 'project ...' with -a does not make sense
+[INFO 2024-11-07_21:35:29] TML Solution Studio: git push origin main Status: Everything up-to-date
+[INFO 2024-11-07_21:35:29] TML Solution Studio: git add . Status: warning: adding embedded git repository: smaurice1013f10
+hint: You've added another git repository inside your current repository.
+hint: Clones of the outer repository will not contain the contents of
+hint: the embedded repository and will not know how to obtain it.
+hint: If you meant to add a submodule, use:
+hint: 
+hint: 	git submodule add <url> smaurice1013f10
+hint: 
+hint: If you added this path by mistake, you can remove it from the
+hint: index with:
+hint: 
+hint: 	git rm --cached smaurice1013f10
+hint: 
+hint: See "git help submodule" for more information.
+[INFO 2024-11-07_21:35:29] TML Solution Studio: git commit -a Status for project myawesometmlsolution-3f10-11f8: fatal: paths 'project ...' with -a does not make sense
+[INFO 2024-11-07_21:35:30] TML Solution Studio: git push Status for project myawesometmlsolution-3f10-11f8: Everything up-to-date
