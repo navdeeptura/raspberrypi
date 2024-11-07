@@ -10,6 +10,7 @@ import tsslogging
 import os
 import subprocess
 import time
+import random
 
 sys.dont_write_bytecode = True
 ######################################## USER CHOOSEN PARAMETERS ########################################
@@ -18,7 +19,7 @@ default_args = {
   'enabletls': '1',   # <<< *** 1=connection is encrypted, 0=no encryption
   'microserviceid' : '', # <<< *** leave blank
   'producerid' : 'iotsolution',    # <<< *** Change as needed   
-  'preprocess_data_topic' : 'iot-preprocess-data', # << *** topic/data to use for training datasets - You created this in STEP 2
+  'preprocess_data_topic' : 'iot-preprocess', # << *** topic/data to use for training datasets - You created this in STEP 2
   'ml_data_topic' : 'ml-data', # topic to store the trained algorithms  - You created this in STEP 2
   'identifier' : 'TML solution',    # <<< *** Change as needed   
   'companyname' : 'Your company', # <<< *** Change as needed      
@@ -46,6 +47,8 @@ default_args = {
   'sendcoefto' : '',  # you can send coefficients to another topic for further processing -- MUST BE SET IN STEP 2
   'coeftoprocess' : '', # indicate the index of the coefficients to process i.e. 0,1,2 For example, for a 3 estimated parameters 0=constant, 1,2 are the other estmated paramters
   'coefsubtopicnames' : '',  # Give the coefficients a name: constant,elasticity,elasticity2    
+  'viperconfigfile' : '/Viper-ml/viper.env', # Do not modify
+  'HPDEADDR' : 'http://'
 }
 
 ######################################## DO NOT MODIFY BELOW #############################################
@@ -68,8 +71,8 @@ maintopic =  default_args['preprocess_data_topic']
 mainproducerid = default_args['producerid']                     
         
 def performSupervisedMachineLearning():
-      
-        
+            
+      viperconfigfile = default_args['viperconfigfile']
       # Set personal data
       companyname=default_args['companyname']
       myname=default_args['myname']
@@ -120,7 +123,7 @@ def performSupervisedMachineLearning():
       producerid=default_args['producerid']
       consumefrom=default_args['consumefrom']
 
-      topicid=int(default_args['mylocation'])      
+      topicid=int(default_args['topicid'])      
       fullpathtotrainingdata=default_args['fullpathtotrainingdata']
 
      # These are the conditions that sets the dependent variable to a 1 - if condition not met it will be 0
@@ -162,29 +165,33 @@ def startml(**context):
        VIPERHOST = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_VIPERHOSTML".format(sname))
        VIPERPORT = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_VIPERPORTML".format(sname))
        HTTPADDR = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_HTTPADDR".format(sname))
+       HPDEADDR = default_args['HPDEADDR']
     
-       HPDEHOST = ti.xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_HPDEHOST".format(sname))
-       HPDEPORT = ti.xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_HPDEPORT".format(sname))
+       HPDEHOST = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_HPDEHOST".format(sname))
+       HPDEPORT = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_HPDEPORT".format(sname))
        chip = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_chip".format(sname)) 
         
        ti = context['task_instance']
-       ti.xcom_push(key="{}_preprocess_data_topic".format(sname), value=preprocess_data_topic)
-       ti.xcom_push(key="{}_ml_data_topic".format(sname), value=ml_data_topic)
-       ti.xcom_push(key="{}_modelruns".format(sname), value="_{}".format(modelruns))
-       ti.xcom_push(key="{}_offset".format(sname), value="_{}".format(offset))
-       ti.xcom_push(key="{}_islogistic".format(sname), value="_{}".format(islogistic))
-       ti.xcom_push(key="{}_networktimeout".format(sname), value="_{}".format(networktimeout))
-       ti.xcom_push(key="{}_modelsearchtuner".format(sname), value="_{}".format(modelsearchtuner))
-       ti.xcom_push(key="{}_dependentvariable".format(sname), value=dependentvariable)
-       ti.xcom_push(key="{}_independentvariables".format(sname), value=independentvariables)
-       ti.xcom_push(key="{}_rollbackoffsets".format(sname), value="_{}".format(rollbackoffsets))
-       ti.xcom_push(key="{}_topicid".format(sname), value="_{}".format(topicid))
-       ti.xcom_push(key="{}_consumefrom".format(sname), value=consumefrom)
-       ti.xcom_push(key="{}_fullpathtotrainingdata".format(sname), value=fullpathtotrainingdata)
-       ti.xcom_push(key="{}_transformtype".format(sname), value=transformtype)
-       ti.xcom_push(key="{}_sendcoefto".format(sname), value=sendcoefto)
-       ti.xcom_push(key="{}_coeftoprocess".format(sname), value=coeftoprocess)
-       ti.xcom_push(key="{}_coefsubtopicnames".format(sname), value=coefsubtopicnames)
+       ti.xcom_push(key="{}_preprocess_data_topic".format(sname), value=default_args['preprocess_data_topic'])
+       ti.xcom_push(key="{}_ml_data_topic".format(sname), value=default_args['ml_data_topic'])
+       ti.xcom_push(key="{}_modelruns".format(sname), value="_{}".format(default_args['modelruns']))
+       ti.xcom_push(key="{}_offset".format(sname), value="_{}".format(default_args['offset']))
+       ti.xcom_push(key="{}_islogistic".format(sname), value="_{}".format(default_args['islogistic']))
+       ti.xcom_push(key="{}_networktimeout".format(sname), value="_{}".format(default_args['networktimeout']))
+       ti.xcom_push(key="{}_modelsearchtuner".format(sname), value="_{}".format(default_args['modelsearchtuner']))
+       ti.xcom_push(key="{}_dependentvariable".format(sname), value=default_args['dependentvariable'])
+       ti.xcom_push(key="{}_independentvariables".format(sname), value=default_args['independentvariables'])
+       ti.xcom_push(key="{}_rollbackoffsets".format(sname), value="_{}".format(default_args['rollbackoffsets']))
+       ti.xcom_push(key="{}_topicid".format(sname), value="_{}".format(default_args['topicid']))
+       ti.xcom_push(key="{}_consumefrom".format(sname), value=default_args['consumefrom'])
+       ti.xcom_push(key="{}_fullpathtotrainingdata".format(sname), value=default_args['fullpathtotrainingdata'])
+       ti.xcom_push(key="{}_transformtype".format(sname), value=default_args['transformtype'])
+       ti.xcom_push(key="{}_sendcoefto".format(sname), value=default_args['sendcoefto'])
+       ti.xcom_push(key="{}_coeftoprocess".format(sname), value=default_args['coeftoprocess'])
+       ti.xcom_push(key="{}_coefsubtopicnames".format(sname), value=default_args['coefsubtopicnames'])
+       ti.xcom_push(key="{}_HPDEADDR".format(sname), value=HPDEADDR)
+       ti.xcom_push(key="{}_processlogic".format(sname), value=default_args['processlogic'])
+
 
        repo=tsslogging.getrepo() 
        if sname != '_mysolution_':
@@ -195,7 +202,7 @@ def startml(**context):
        wn = windowname('ml',sname,sd)     
        subprocess.run(["tmux", "new", "-d", "-s", "{}".format(wn)])
        subprocess.run(["tmux", "send-keys", "-t", "{}".format(wn), "cd /Viper-ml", "ENTER"])
-       subprocess.run(["tmux", "send-keys", "-t", "{}".format(wn), "python {} 1 {} {}{} {} {} {}".format(fullpath,VIPERTOKEN, HTTPADDR, VIPERHOST, VIPERPORT[1:], HPDEHOST, HPDEPORT[1:]), "ENTER"])        
+       subprocess.run(["tmux", "send-keys", "-t", "{}".format(wn), "python {} 1 {} {}{} {} {}{} {}".format(fullpath,VIPERTOKEN, HTTPADDR, VIPERHOST, VIPERPORT[1:], HPDEADDR, HPDEHOST, HPDEPORT[1:]), "ENTER"])        
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
@@ -215,12 +222,14 @@ if __name__ == '__main__':
         HPDEHOST = sys.argv[5]
         HPDEPORT = sys.argv[6]
         
+        tsslogging.locallogs("INFO", "STEP 5: Machine learning started")
     
         while True:
          try:     
           performSupervisedMachineLearning()
           time.sleep(1)
          except Exception as e:
+          tsslogging.locallogs("ERROR", "STEP 5: Machine Learning DAG in {} {}".format(os.path.basename(__file__),e))
           tsslogging.tsslogit("Machine Learning DAG in {} {}".format(os.path.basename(__file__),e), "ERROR" )                     
           tsslogging.git_push("/{}".format(repo),"Entry from {}".format(os.path.basename(__file__)),"origin")    
           break

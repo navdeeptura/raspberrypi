@@ -7,6 +7,7 @@ import maadstml
 import sys
 import tsslogging
 import os
+import subprocess
 
 sys.dont_write_bytecode = True
 
@@ -24,9 +25,10 @@ default_args = {
   'brokerport' : '-999',  # <<< ********** Leave as is
   'microserviceid' : '',  # <<< ********** You change as needed
   'raw_data_topic' : 'iot-raw-data', # Separate multiple topics with comma <<< ********** You change topic names as needed
-  'preprocess_data_topic' : 'iot-preprocess-data,iot-preprocess2-data', # Separate multiple topics with comma <<< ********** You change topic names as needed
+  'preprocess_data_topic' : 'iot-preprocess,iot-preprocess2', # Separate multiple topics with comma <<< ********** You change topic names as needed
   'ml_data_topic' : 'ml-data', # Separate multiple topics with comma <<< ********** You change topic names as needed
   'prediction_data_topic' : 'prediction-data', # Separate multiple topics with comma <<< ********** You change topic names as needed
+  'pgpt_data_topic' : 'cisco-network-privategpt',  #  PrivateGPT will produce responses to this topic - change as  needed
   'description' : 'Topics to store iot data',      
 }
 
@@ -39,8 +41,22 @@ def startkafkasetup():
         pass
 dag = startkafkasetup()
 
+def deletetopics(topic):
+    
+    buf = "/Kafka/kafka_2.13-3.0.0/bin/kafka-topics.sh --bootstrap-server localhost:9092 --topic {} --delete".format(topic)
+    res=subprocess.call(buf, shell=True)
+    print(buf)
+    print("Result=",res)
+    
+    repo=tsslogging.getrepo()    
+    tsslogging.tsslogit("Deleting topic {} in {}".format(topic,os.path.basename(__file__)), "INFO" )                     
+    tsslogging.git_push("/{}".format(repo),"Entry from {}".format(os.path.basename(__file__)),"origin")  
+    
 def setupkafkatopics(**context):
  # Set personal data
+
+  tsslogging.locallogs("INFO", "STEP 2: Create topics started") 
+    
   args = default_args
   companyname=args['companyname']
   myname=args['myname']
@@ -74,7 +90,9 @@ def setupkafkatopics(**context):
   VIPERTOKEN = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_VIPERTOKEN".format(sname))
   VIPERHOST = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_VIPERHOSTPRODUCE".format(sname))
   VIPERPORT = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_VIPERPORTPRODUCE".format(sname))
-    
+  mainbroker = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_brokerhost".format(sname))
+  HTTPADDR = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_HTTPADDR".format(sname))
+
   ti = context['task_instance'] 
   ti.xcom_push(key="{}_companyname".format(sname), value=companyname)
   ti.xcom_push(key="{}_myname".format(sname), value=myname)
@@ -89,25 +107,45 @@ def setupkafkatopics(**context):
   ti.xcom_push(key="{}_ml_data_topic".format(sname), value=ml_data_topic)
   ti.xcom_push(key="{}_prediction_data_topic".format(sname), value=prediction_data_topic)
   
-  print("Vipertoken=", VIPERTOKEN)
-  print("VIPERHOST=", VIPERHOST)
-  print("VIPERPORT=", VIPERPORT)
+
 
   #############################################################################################################
   #                         CREATE TOPIC TO STORE TRAINED PARAMS FROM ALGORITHM  
 
-  topickeys = ['raw_data_topic','preprocess_data_topic','ml_data_topic','prediction_data_topic'] 
+  topickeys = ['raw_data_topic','preprocess_data_topic','ml_data_topic','prediction_data_topic','pgpt_data_topic'] 
+  VIPERHOSTMAIN = "{}{}".format(HTTPADDR,VIPERHOST)    
 
   for k in topickeys:
     producetotopic=args[k]
     description=args['description']
 
     topicsarr = producetotopic.split(",")
-
     for topic in topicsarr:  
+        if topic != '' and "127.0.0.1" in mainbroker:
+          try:  
+            deletetopics(topic)
+          except Exception as e:
+            print("ERROR: ",e)
+            continue 
+
+    if '127.0.0.1' in mainbroker:
+        replication=1
+            
+    for topic in topicsarr:  
+      if topic == '':
+          continue
       print("Creating topic=",topic)  
-      result=maadstml.vipercreatetopic(VIPERTOKEN,VIPERHOST,VIPERPORT,topic,companyname,
+      try:
+        result=maadstml.vipercreatetopic(VIPERTOKEN,VIPERHOSTMAIN,VIPERPORT[1:],topic,companyname,
                                  myname,myemail,mylocation,description,enabletls,
                                  brokerhost,brokerport,numpartitions,replication,
                                  microserviceid='')
+      except Exception as e:
+       tsslogging.locallogs("ERROR", "STEP 2: Cannot create topic {} in {} - {}".format(topic,os.path.basename(__file__),e)) 
+    
+       repo=tsslogging.getrepo()    
+       tsslogging.tsslogit("Cannot create topic {} in {} - {}".format(topic,os.path.basename(__file__),e), "ERROR" )                     
+       tsslogging.git_push("/{}".format(repo),"Entry from {}".format(os.path.basename(__file__)),"origin")  
+        
       print("Result=",result)
+  tsslogging.locallogs("INFO", "STEP 2: Completed")

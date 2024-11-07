@@ -9,6 +9,7 @@ import tsslogging
 import time 
 import subprocess
 import shutil
+import glob
 
 sys.dont_write_bytecode = True
 ######################################################USER CHOSEN PARAMETERS ###########################################################
@@ -16,9 +17,8 @@ default_args = {
  'owner': 'Sebastian Maurice',  # <<< ******** change as needed 
  'brokerhost' : '127.0.0.1',  # <<<<***************** THIS WILL ACCESS LOCAL KAFKA - YOU CAN CHANGE TO CLOUD KAFKA HOST
  'brokerport' : '9092',     # <<<<***************** LOCAL AND CLOUD KAFKA listen on PORT 9092
- 'cloudusername' : '',  # <<<< --------FOR KAFKA CLOUD UPDATE WITH API KEY  - OTHERWISE LEAVE BLANK
- 'cloudpassword' : '',  # <<<< --------FOR KAFKA CLOUD UPDATE WITH API SECRET - OTHERWISE LEAVE BLANK   
- 'ingestdatamethod' : 'localfile', # << CHOOSE BETWEEN: 1. localfle, 2. mqtt, 3. rest, 4. grpc     
+ 'cloudusername' : '',  # <<<< --THIS WILL BE UPDATED FOR YOU IF USING KAFKA CLOUD WITH API KEY  - LEAVE BLANK
+ 'cloudpassword' : '',  # <<<< --THIS WILL BE UPDATED FOR YOU IF USING KAFKA CLOUD WITH API SECRET - LEAVE BLANK   
  'solutionname': '_mysolution_',   # <<< *** DO NOT MODIFY - THIS WILL BE AUTOMATICALLY UPDATED
  'solutiontitle': 'My Solution Title', # <<< *** Provide a descriptive title for your solution
  'solutionairflowport' : '-1', # << If -1, TSS will choose a free port randonly, or set this to a fixed number
@@ -26,7 +26,6 @@ default_args = {
  'solutionvipervizport' : '-1', # << If -1, TSS will choose a free port randonly, or set this to a fixed number   
  'description': 'This is an awesome real-time solution built by TSS',   # <<< *** Provide a description of your solution
  'HTTPADDR' : 'https://',
- 'dashboardhtml' : 'dashboard.html',   ## << Update with your custom dashboard    
  'COMPANYNAME' : 'My company',       
  'WRITELASTCOMMIT' : '0',   ## <<<<<<<<< ******************** FOR DETAILS ON BELOW PARAMETER SEE: https://tml.readthedocs.io/en/latest/viper.html
  'NOWINDOWOVERLAP' : '0',
@@ -80,45 +79,64 @@ def tmlparams():
         pass
 dag = tmlparams()
 
-def reinitbinaries(chip,VIPERHOST,VIPERPORT,VIPERHOSTPREPROCESS,VIPERPORTPREPROCESS,VIPERHOSTPREDICT,VIPERPORTPREDICT,VIPERHOSTML,VIPERPORTML,sname):  
-
-    try:
-      with open("/tmux/pythonwindows_{}.txt".format(sname), 'r', encoding='utf-8') as file: 
-        data = file.readlines() 
-        for d in data:          
-          if d != "":             
-            d=d.rstrip()            
-            v=subprocess.call(["tmux", "kill-window", "-t", "{}".format(d)])   
-      os.remove("/tmux/pythonwindows_{}.txt".format(sname))        
-    except Exception as e:
-     print("ERROR=",e)   
-     pass
     
-    try:
-      with open("/tmux/vipervizwindows_{}.txt".format(sname), 'r', encoding='utf-8') as file: 
-         data = file.readlines()  
-         for d in data:
-             d=d.rstrip()
-             dsw = d.split(",")[0]             
-             dsp = d.split(",")[1]
-             if dsw != "":  
-               subprocess.call(["tmux", "kill-window", "-t", "{}".format(dsw)])        
-               v=subprocess.call(["kill", "-9", "$(lsof -i:{} -t)".format(dsp)])
-               time.sleep(1) 
-      os.remove("/tmux/vipervizwindows_{}.txt".format(sname))                    
-    except Exception as e:
-     pass
+def reinitbinaries(sname):  
+    pywindowfiles=glob.glob("/tmux/pythonwindows_*") 
+    
+    for f in pywindowfiles: 
+        try:
+          with open(f, 'r', encoding='utf-8') as file: 
+            data = file.readlines() 
+            for d in data:          
+              if d != "":             
+                d=d.rstrip()            
+                v=subprocess.call(["tmux", "kill-window", "-t", "{}".format(d)])   
+          os.remove(f)        
+        except Exception as e:
+         print("ERROR=",e)   
+         pass
+
+    vizwindowfiles=glob.glob("/tmux/vipervizwindows_*") 
+    
+    for f in vizwindowfiles: 
+        try:
+          with open(f, 'r', encoding='utf-8') as file: 
+             data = file.readlines()  
+             for d in data:
+                 d=d.rstrip()
+                 dsw = d.split(",")[0]             
+                 dsp = d.split(",")[1]
+                 if dsw != "":  
+                   subprocess.call(["tmux", "kill-window", "-t", "{}".format(dsw)])        
+                   v=subprocess.call(["kill", "-9", "$(lsof -i:{} -t)".format(dsp)])
+                   time.sleep(1) 
+          os.remove(f)                    
+        except Exception as e:
+         pass
        
     # copy folders
     shutil.copytree("/tss_readthedocs", "/{}".format(sname),dirs_exist_ok=True)
-    return VIPERPORT,VIPERPORTPREPROCESS,VIPERPORTPREDICT,VIPERPORTML
+    #remove local logs
+    os.remove('/dagslocalbackup/logs.txt')    
         
 def updateviperenv():
     # update ALL
     os.environ['tssbuild']="0"
     os.environ['tssdoc']="0"
 
-    filepaths = ['/Viper-produce/viper.env','/Viper-preprocess/viper.env','/Viper-ml/viper.env','/Viper-predict/viper.env','/Viperviz/viper.env']
+    cloudusername = ""
+    cloudpassword = ""
+    
+    if 'KAFKACLOUDUSERNAME' in os.environ:
+          cloudusername = os.environ['KAFKACLOUDUSERNAME']
+    if 'KAFKACLOUDPASSWORD' in os.environ:
+          cloudpassword = os.environ['KAFKACLOUDPASSWORD']
+
+    if '127.0.0.1' in default_args['brokerhost']:
+      cloudusername = ""
+      cloudpassword = ""
+        
+    filepaths = ['/Viper-produce/viper.env','/Viper-preprocess/viper.env','/Viper-preprocess-pgpt/viper.env','/Viper-preprocess2/viper.env','/Viper-ml/viper.env','/Viper-predict/viper.env','/Viperviz/viper.env']
     for mainfile in filepaths:
      with open(mainfile, 'r', encoding='utf-8') as file: 
        data = file.readlines() 
@@ -129,11 +147,14 @@ def updateviperenv():
           continue 
         
        if 'KAFKA_CONNECT_BOOTSTRAP_SERVERS' in d: 
-         data[r] = "KAFKA_CONNECT_BOOTSTRAP_SERVERS={}:{}\n".format(default_args['brokerhost'],default_args['brokerport'])
+         if default_args['brokerport'] == '':
+           data[r] = "KAFKA_CONNECT_BOOTSTRAP_SERVERS={}\n".format(default_args['brokerhost'])    
+         else:       
+           data[r] = "KAFKA_CONNECT_BOOTSTRAP_SERVERS={}:{}\n".format(default_args['brokerhost'],default_args['brokerport'])
        if 'CLOUD_USERNAME' in d: 
-         data[r] = "CLOUD_USERNAME={}\n".format(default_args['cloudusername'])
+         data[r] = "CLOUD_USERNAME={}\n".format(cloudusername)
        if 'CLOUD_PASSWORD' in d: 
-         data[r] = "CLOUD_PASSWORD={}\n".format(default_args['cloudpassword'])                
+         data[r] = "CLOUD_PASSWORD={}\n".format(cloudpassword)                
        if 'WRITELASTCOMMIT' in d: 
          data[r] = "WRITELASTCOMMIT={}\n".format(default_args['WRITELASTCOMMIT'])
        if 'NOWINDOWOVERLAP' in d: 
@@ -220,8 +241,10 @@ def updateviperenv():
        r += 1
      with open(mainfile, 'w', encoding='utf-8') as file: 
       file.writelines(data)
-
-
+    
+    subprocess.call("/tmux/starttml.sh", shell=True)
+    time.sleep(3)        
+    
 def getparams(**context):
   args = default_args    
   VIPERHOST = ""
@@ -232,6 +255,17 @@ def getparams(**context):
   VIPERTOKEN = ""
   HPDEHOSTPREDICT = ""
   HPDEPORTPREDICT = ""
+
+  tsslogging.locallogs("INFO", "STEP 1: Build started") 
+    
+  sname = args['solutionname']    
+  desc = args['description']        
+  stitle = args['solutiontitle']    
+  
+  brokerhost = args['brokerhost']   
+  brokerport = args['brokerport'] 
+  reinitbinaries(sname)
+  updateviperenv()
 
   with open("/Viper-produce/admin.tok", "r") as f:
     VIPERTOKEN=f.read()
@@ -245,6 +279,10 @@ def getparams(**context):
       output = f.read()
       VIPERHOSTPREPROCESS = output.split(",")[0]
       VIPERPORTPREPROCESS = output.split(",")[1]    
+    with open('/Viper-preprocess2/viper.txt', 'r') as f:
+      output = f.read()
+      VIPERHOSTPREPROCESS2 = output.split(",")[0]
+      VIPERPORTPREPROCESS2 = output.split(",")[1]        
     with open('/Viper-preprocess-pgpt/viper.txt', 'r') as f:
       output = f.read()
       VIPERHOSTPREPROCESSPGPT = output.split(",")[0]
@@ -266,25 +304,13 @@ def getparams(**context):
       HPDEHOSTPREDICT = output.split(",")[0]
       HPDEPORTPREDICT = output.split(",")[1]
 
-  sname = args['solutionname']    
-  desc = args['description']        
-  stitle = args['solutiontitle']    
-  method = args['ingestdatamethod'] 
-  brokerhost = args['brokerhost']   
-  brokerport = args['brokerport'] 
-  dashboardhtml = args['dashboardhtml'] 
   
   if 'CHIP' in os.environ:
      chip = os.environ['CHIP']
      chip = chip.lower()   
   else:   
       chip = 'amd64'
-     
-  VIPERPORT,VIPERPORTPREPROCESS,VIPERPORTPREDICT,VIPERPORTML = reinitbinaries(chip,VIPERHOST,VIPERPORT,VIPERHOSTPREPROCESS,VIPERPORTPREPROCESS,
-                                                                              VIPERHOSTPREDICT,VIPERPORTPREDICT,VIPERHOSTML,VIPERPORTML,sname)
-  print("VIPERHOST=", VIPERHOST) 
-  print("VIPERPORT=", VIPERPORT) 
-
+       
   if 'VIPERVIZPORT' in os.environ:
       if os.environ['VIPERVIZPORT'] != '' and os.environ['VIPERVIZPORT'] != '-1':
            vipervizport = int(os.environ['VIPERVIZPORT'])
@@ -330,7 +356,27 @@ def getparams(**context):
     task_instance.xcom_push(key="{}_SOLUTIONEXTERNALPORT".format(sname),value="_{}".format(os.environ['SOLUTIONEXTERNALPORT'])) 
     task_instance.xcom_push(key="{}_SOLUTIONVIPERVIZPORT".format(sname),value="_{}".format(os.environ['SOLUTIONVIPERVIZPORT']))  
     task_instance.xcom_push(key="{}_SOLUTIONAIRFLOWPORT".format(sname),value="_{}".format(os.environ['SOLUTIONAIRFLOWPORT'])) 
-    
+   # killports()
+
+  if 'MQTTUSERNAME' in os.environ:
+    task_instance.xcom_push(key="{}_MQTTUSERNAME".format(sname),value=os.environ['MQTTUSERNAME'])
+  else:
+    task_instance.xcom_push(key="{}_MQTTUSERNAME".format(sname),value="")
+
+  if 'MQTTPASSWORD' in os.environ:
+    task_instance.xcom_push(key="{}_MQTTPASSWORD".format(sname),value=os.environ['MQTTPASSWORD'])
+  else:
+    task_instance.xcom_push(key="{}_MQTTPASSWORD".format(sname),value="")
+
+  if 'KAFKACLOUDUSERNAME' in os.environ:
+    task_instance.xcom_push(key="{}_KAFKACLOUDUSERNAME".format(sname),value=os.environ['KAFKACLOUDUSERNAME'])
+  else:
+    task_instance.xcom_push(key="{}_KAFKACLOUDUSERNAME".format(sname),value="")
+
+  if 'KAFKACLOUDPASSWORD' in os.environ:
+    task_instance.xcom_push(key="{}_KAFKACLOUDPASSWORD".format(sname),value=os.environ['KAFKACLOUDPASSWORD'])
+  else:
+    task_instance.xcom_push(key="{}_KAFKACLOUDPASSWORD".format(sname),value="")
     
   task_instance.xcom_push(key="{}_TSS".format(sname),value="_{}".format(tss))  
     
@@ -345,6 +391,8 @@ def getparams(**context):
   task_instance.xcom_push(key="{}_VIPERPORTPRODUCE".format(sname),value="_{}".format(VIPERPORT))
   task_instance.xcom_push(key="{}_VIPERHOSTPREPROCESS".format(sname),value=VIPERHOSTPREPROCESS)
   task_instance.xcom_push(key="{}_VIPERPORTPREPROCESS".format(sname),value="_{}".format(VIPERPORTPREPROCESS))
+  task_instance.xcom_push(key="{}_VIPERHOSTPREPROCESS2".format(sname),value=VIPERHOSTPREPROCESS2)
+  task_instance.xcom_push(key="{}_VIPERPORTPREPROCESS2".format(sname),value="_{}".format(VIPERPORTPREPROCESS2))
 
   task_instance.xcom_push(key="{}_VIPERHOSTPREPROCESSPGPT".format(sname),value=VIPERHOSTPREPROCESSPGPT)
   task_instance.xcom_push(key="{}_VIPERPORTPREPROCESSPGPT".format(sname),value="_{}".format(VIPERPORTPREPROCESSPGPT))
@@ -361,11 +409,10 @@ def getparams(**context):
   task_instance.xcom_push(key="{}_solutionname".format(sd),value=sname)
   task_instance.xcom_push(key="{}_solutiondescription".format(sname),value=desc)
   task_instance.xcom_push(key="{}_solutiontitle".format(sname),value=stitle)
-  task_instance.xcom_push(key="{}_ingestdatamethod".format(sname),value=method)
+
   task_instance.xcom_push(key="{}_containername".format(sname),value='')
   task_instance.xcom_push(key="{}_brokerhost".format(sname),value=brokerhost)
   task_instance.xcom_push(key="{}_brokerport".format(sname),value="_{}".format(brokerport))
   task_instance.xcom_push(key="{}_chip".format(sname),value=chip)
-  task_instance.xcom_push(key="{}_dashboardhtml".format(sname),value=dashboardhtml)
     
-  updateviperenv()
+  tsslogging.locallogs("INFO", "STEP 1: completed - TML system parameters successfully gathered")

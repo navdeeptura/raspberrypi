@@ -30,12 +30,12 @@ default_args = {
   'producerid' : 'iotsolution',  # <<< *** Change as needed
   'topics' : 'iot-raw-data', # *************** This is one of the topic you created in SYSTEM STEP 2
   'identifier' : 'TML solution',  # <<< *** Change as needed
-  'tss_gRPC_Port' : '9001',  # <<< ***** replace with gRPC port i.e. this gRPC server listening on port 9001     
-  'gRPC_Port' : '9002',  # <<< ***** replace with gRPC port i.e. this gRPC server listening on port 9001 
+  'tss_gRPC_Port' : '9001',  # <<< ***** replace with gRPC port i.e. this gRPC server listening on port 9001
+  'gRPC_Port' : '9002',  # <<< ***** replace with gRPC port i.e. this gRPC server listening on port 9001
   'delay' : '7000', # << ******* 7000 millisecond maximum delay for VIPER to wait for Kafka to return confirmation message is received and written to topic
-  'topicid' : '-999', # <<< ********* do not modify              
+  'topicid' : '-999', # <<< ********* do not modify
 }
-    
+
 ######################################## DO NOT MODIFY BELOW #############################################
 
 # Instantiate your DAG
@@ -59,91 +59,89 @@ class TmlprotoService(pb2_grpc.TmlprotoServicer):
     pass
 
   def GetServerResponse(self, request, context):
+    maintopic = default_args['topics']
+    producerid = default_args['producerid']
 
-    # get the string from the incoming request
     message = request.message
-    readata(message)
-    #result = f'Hello I am up and running received "{message}" message from you'
-    #result = {'message': result, 'received': True}
+    try:
+      inputbuf=f"{message}"
+      print("inputbuf=",inputbuf)
 
-    #return pb2.MessageResponse(**result)
+      topicid=default_args['topicid']
+
+     # Add a 7000 millisecond maximum delay for VIPER to wait for Kafka to return confirmation message is received and written to topi> delay=int(args['delay'])
+      enabletls = int(default_args['enabletls'])
+      identifier = default_args['identifier']
+      delay = int(default_args['delay'])
+      try:
+        result=maadstml.viperproducetotopic(VIPERTOKEN,VIPERHOST,VIPERPORT,maintopic,producerid,enabletls,delay,'','', '',0,inputbuf,'',
+                                            topicid,identifier)
+      except Exception as e:
+        print("ERROR:",e)
+    except Exception as e:
+     pass
+
 
 def serve():
-    repo=tsslogging.getrepo()   
-    tsslogging.tsslogit("gRPC producing DAG in {}".format(os.path.basename(__file__)), "INFO" )                     
-    tsslogging.git_push("/{}".format(repo),"Entry from {}".format(os.path.basename(__file__)),"origin")          
+    tsslogging.locallogs("INFO", "STEP 3: producing data started")
+    repo=tsslogging.getrepo()
+    tsslogging.tsslogit("gRPC producing DAG in {}".format(os.path.basename(__file__)), "INFO" )
+    tsslogging.git_push("/{}".format(repo),"Entry from {}".format(os.path.basename(__file__)),"origin")
 
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    pb2_grpc.add_UnaryServicer_to_server(UnaryService(), server)
-    if os.environ['TSS']=="0":
-      server.add_insecure_port("[::]:{}".format(default_args['gRPC_Port']))
-    else:
-      server.add_insecure_port("[::]:{}".format(default_args['tss_gRPC_Port']))
-    
+    try:
+        server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+        pb2_grpc.add_TmlprotoServicer_to_server(TmlprotoService(), server)
+        if os.environ['TSS']=="0":
+          server.add_insecure_port("[::]:{}".format(default_args['gRPC_Port']))
+        else:
+          server.add_insecure_port("[::]:{}".format(default_args['tss_gRPC_Port']))
+    except Exception as e:
+           tsslogging.locallogs("ERROR", "STEP 3: Cannot connect to gRPC server in {} - {}".format(os.path.basename(__file__),e))
+        
+           tsslogging.tsslogit("ERROR: Cannot connect to gRPC server in {} - {}".format(os.path.basename(__file__),e), "ERROR" )                     
+           tsslogging.git_push("/{}".format(repo),"Entry from {}".format(os.path.basename(__file__)),"origin")        
+           print("ERROR: Cannot connect to gRPC server in") 
+           return             
+        
+    tsslogging.locallogs("INFO", "STEP 3: gRPC server started .. waiting for connections")        
     server.start()
-    server.wait_for_termination()        
+    server.wait_for_termination()
 
-def producetokafka(value, tmlid, identifier,producerid,maintopic,substream,args):
- inputbuf=value     
- topicid=args['topicid']
 
- # Add a 7000 millisecond maximum delay for VIPER to wait for Kafka to return confirmation message is received and written to topic 
- delay=int(args['delay'])
- enabletls = int(args['enabletls'])
- identifier = args['identifier']
-
- try:
-    result=maadstml.viperproducetotopic(VIPERTOKEN,VIPERHOST,VIPERPORT,maintopic,producerid,enabletls,delay,'','', '',0,inputbuf,substream,
-                                        topicid,identifier)
- except Exception as e:
-    print("ERROR:",e)
-
-def readdata(valuedata):
-  args = default_args
-  # MAin Kafka topic to store the real-time data
-  maintopic = args['topics']
-  producerid = args['producerid']
-
-  try:
-      producetokafka(valuedata, "", "",producerid,maintopic,"",args)
-      # change time to speed up or slow down data   
-      time.sleep(0.15)
-  except Exception as e:
-      print(e)  
-      pass  
-  
 def windowname(wtype,sname,dagname):
     randomNumber = random.randrange(10, 9999)
     wn = "python-{}-{}-{},{}".format(wtype,randomNumber,sname,dagname)
-    with open("/tmux/pythonwindows_{}.txt".format(sname), 'a', encoding='utf-8') as file: 
+    with open("/tmux/pythonwindows_{}.txt".format(sname), 'a', encoding='utf-8') as file:
       file.writelines("{}\n".format(wn))
-    
+
     return wn
 
 def startproducing(**context):
        global VIPERTOKEN
        global VIPERHOST
        global VIPERPORT
-       global HTTPADDR 
-       global VIPERHOSTFROM  
-        
+       global HTTPADDR
+       global VIPERHOSTFROM
+
+       tsslogging.locallogs("INFO", "STEP 3: producing data started")
+            
        sd = context['dag'].dag_id
        sname=context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_solutionname".format(sd))
-    
+
        VIPERTOKEN = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_VIPERTOKEN".format(sname))
        VIPERHOST = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_VIPERHOSTPRODUCE".format(sname))
        VIPERPORT = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_VIPERPORTPRODUCE".format(sname))
        HTTPADDR = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_HTTPADDR".format(sname))
-        
-       chip = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_chip".format(sname)) 
-       repo=tsslogging.getrepo() 
-      
-       if sname != '_mysolution_':
-        fullpath="/{}/tml-airflow/dags/tml-solutions/{}/{}".format(repo,sname,os.path.basename(__file__))  
-       else:
-         fullpath="/{}/tml-airflow/dags/{}".format(repo,os.path.basename(__file__))  
 
-       hs,VIPERHOSTFROM=tsslogging.getip(VIPERHOST)     
+       chip = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_chip".format(sname))
+       repo=tsslogging.getrepo()
+
+       if sname != '_mysolution_':
+        fullpath="/{}/tml-airflow/dags/tml-solutions/{}/{}".format(repo,sname,os.path.basename(__file__))
+       else:
+         fullpath="/{}/tml-airflow/dags/{}".format(repo,os.path.basename(__file__))
+
+       hs,VIPERHOSTFROM=tsslogging.getip(VIPERHOST)
        ti = context['task_instance']
        ti.xcom_push(key="{}_PRODUCETYPE".format(sname),value='gRPC')
        ti.xcom_push(key="{}_TOPIC".format(sname),value=default_args['topics'])
@@ -153,8 +151,8 @@ def startproducing(**context):
        else:
         ti.xcom_push(key="{}_CLIENTPORT".format(sname),value="_{}".format(default_args['tss_gRPC_Port']))
 
-       ti.xcom_push(key="{}_TSSCLIENTPORT".format(sname),value="_{}".format(default_args['tss_gRPC_Port']))  
-       ti.xcom_push(key="{}_TMLCLIENTPORT".format(sname),value="_{}".format(default_args['gRPC_Port']))  
+       ti.xcom_push(key="{}_TSSCLIENTPORT".format(sname),value="_{}".format(default_args['tss_gRPC_Port']))
+       ti.xcom_push(key="{}_TMLCLIENTPORT".format(sname),value="_{}".format(default_args['gRPC_Port']))
 
        ti.xcom_push(key="{}_IDENTIFIER".format(sname),value=default_args['identifier'])
 
@@ -163,17 +161,19 @@ def startproducing(**context):
 
        ti.xcom_push(key="{}_PORT".format(sname),value=VIPERPORT)
        ti.xcom_push(key="{}_HTTPADDR".format(sname),value=HTTPADDR)
-            
-       wn = windowname('produce',sname,sd)     
+
+       wn = windowname('produce',sname,sd)
        subprocess.run(["tmux", "new", "-d", "-s", "{}".format(wn)])
        subprocess.run(["tmux", "send-keys", "-t", "{}".format(wn), "cd /Viper-produce", "ENTER"])
-       subprocess.run(["tmux", "send-keys", "-t", "{}".format(wn), "python {} 1 {} {}{} {}".format(fullpath,VIPERTOKEN,HTTPADDR,VIPERHOSTFROM,VIPERPORT[1:]), "ENTER"])        
-        
+       subprocess.run(["tmux", "send-keys", "-t", "{}".format(wn), "python {} 1 {} {}{} {}".format(fullpath,VIPERTOKEN,HTTPADDR,VIPERHOSTFROM,VIPERPORT[1:]), "ENTER"])
+
+       tsslogging.locallogs("INFO", "STEP 3: producing data completed")
+
 if __name__ == '__main__':
-    
+
     if len(sys.argv) > 1:
-       if sys.argv[1] == "1":          
+       if sys.argv[1] == "1":
          VIPERTOKEN = sys.argv[2]
-         VIPERHOST = sys.argv[3] 
-         VIPERPORT = sys.argv[4]                  
+         VIPERHOST = sys.argv[3]
+         VIPERPORT = sys.argv[4]
          serve()

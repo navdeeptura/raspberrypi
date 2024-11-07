@@ -9,6 +9,8 @@ import sys
 import tsslogging
 import os
 import subprocess
+import random
+import time
 
 sys.dont_write_bytecode = True
 ######################################## USER CHOOSEN PARAMETERS ########################################
@@ -17,7 +19,7 @@ default_args = {
   'enabletls': '1',   # <<< *** 1=connection is encrypted, 0=no encryption
   'microserviceid' : '', # <<< *** leave blank
   'producerid' : 'iotsolution',    # <<< *** Change as needed   
-  'preprocess_data_topic' : 'iot-preprocess-data', # << *** data for the independent variables - You created this in STEP 2
+  'preprocess_data_topic' : 'iot-preprocess', # << *** data for the independent variables - You created this in STEP 2
   'ml_prediction_topic' : 'iot-ml-prediction-results-output', # topic to store the predictions - You created this in STEP 2
   'description' : 'TML solution',    # <<< *** Change as needed   
   'companyname' : 'Your company', # <<< *** Change as needed      
@@ -31,15 +33,16 @@ default_args = {
   'mainalgokey' : '', # leave blank
   'offset' : '-1', # << ** input data will start from the end of the preprocess_data_topic and rollback maxrows
   'delay' : '60', # << network delay parameter 
-  'usedeploy' : '', # << 1=use algorithms in ./deploy folder, 0=use ./models folder
+  'usedeploy' : '1', # << 1=use algorithms in ./deploy folder, 0=use ./models folder
   'networktimeout' : '6000', # << additional network parameter 
-  'maxrows' : '',  # << ** the number of offsets to rollback - For example, if 50, you will get 50 predictions continuously 
+  'maxrows' : '50',  # << ** the number of offsets to rollback - For example, if 50, you will get 50 predictions continuously 
   'produceridhyperprediction' : '',  # << leave blank
   'consumeridtraininedparams' : '',  # << leave blank
   'groupid' : '',  # << leave blank
   'topicid' : '-1',   # << leave as is
   'pathtoalgos' : '', # << this is specified in fullpathtotrainingdata in STEP 5
-  'array' : '0', # 0=do not save as array, 1=save as array    
+  'array' : '0', # 0=do not save as array, 1=save as array   
+  'HPDEADDR' : 'http://' # Do not modify
 }
 ######################################## DO NOT MODIFY BELOW #############################################
 
@@ -53,8 +56,8 @@ dag = startpredictions()
 VIPERTOKEN=""
 VIPERHOST=""
 VIPERPORT=""
-HPDEHOST=''
-HPDEPORT=''
+HPDEHOSTPREDICT=''
+HPDEPORTPREDICT=''
 HTTPADDR=""    
 
 # Set Global variable for Viper confifuration file - change the folder path for your computer
@@ -121,11 +124,12 @@ def performPrediction():
       # Path where the trained algorithms are stored in the machine learning python file
       pathtoalgos=default_args['pathtoalgos'] #'/Viper-tml/viperlogs/iotlogistic'
       array=int(default_args['array'])
-          
-      result6=maadstml.viperhpdepredict(VIPERTOKEN,VIPERHOST,VIPERPORT,consumefrom,producetotopic,
+      ml_prediction_topic = default_args['ml_prediction_topic']    
+    
+      result6=maadstml.viperhpdepredict(VIPERTOKEN,VIPERHOST,VIPERPORT,consumefrom,ml_prediction_topic,
                                      companyname,consumeridtraininedparams,
-                                     produceridhyperprediction, HPDEHOST,inputdata,maxrows,mainalgokey,
-                                     -1,offset,enabletls,delay,HPDEPORT,
+                                     produceridhyperprediction, HPDEHOSTPREDICT,inputdata,maxrows,mainalgokey,
+                                     -1,offset,enabletls,delay,HPDEPORTPREDICT,
                                      brokerhost,brokerport,networktimeout,usedeploy,microserviceid,
                                      topicid,maintopic,streamstojoin,array,pathtoalgos)
 
@@ -148,6 +152,7 @@ def startpredictions(**context):
        VIPERHOST = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_VIPERHOSTPREDICT".format(sname))
        VIPERPORT = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_VIPERPORTPREDICT".format(sname))
        HTTPADDR = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_HTTPADDR".format(sname))
+       HPDEADDR = default_args['HPDEADDR']
 
        HPDEHOSTPREDICT = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_HPDEHOSTPREDICT".format(sname))
        HPDEPORTPREDICT = context['ti'].xcom_pull(task_ids='step_1_solution_task_getparams',key="{}_HPDEPORTPREDICT".format(sname))
@@ -166,6 +171,7 @@ def startpredictions(**context):
        ti.xcom_push(key="{}_maxrows".format(sname),value="_{}".format(default_args['maxrows']))
        ti.xcom_push(key="{}_topicid".format(sname),value="_{}".format(default_args['topicid']))
        ti.xcom_push(key="{}_pathtoalgos".format(sname),value=default_args['pathtoalgos'])
+       ti.xcom_push(key="{}_HPDEADDR".format(sname), value=HPDEADDR)
     
        repo=tsslogging.getrepo() 
        if sname != '_mysolution_':
@@ -176,7 +182,7 @@ def startpredictions(**context):
        wn = windowname('predict',sname,sd)     
        subprocess.run(["tmux", "new", "-d", "-s", "{}".format(wn)])
        subprocess.run(["tmux", "send-keys", "-t", "{}".format(wn), "cd /Viper-predict", "ENTER"])
-       subprocess.run(["tmux", "send-keys", "-t", "{}".format(wn), "python {} 1 {} {}{} {} {} {}".format(fullpath,VIPERTOKEN,HTTPADDR,VIPERHOST,VIPERPORT[1:],HPDEHOSTPREDICT,HPDEPORTPREDICT[1:]), "ENTER"])        
+       subprocess.run(["tmux", "send-keys", "-t", "{}".format(wn), "python {} 1 {} {}{} {} {}{} {}".format(fullpath,VIPERTOKEN,HTTPADDR,VIPERHOST,VIPERPORT[1:],HPDEADDR,HPDEHOSTPREDICT,HPDEPORTPREDICT[1:]), "ENTER"])        
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
@@ -195,12 +201,13 @@ if __name__ == '__main__':
          VIPERPORT=sys.argv[4]
          HPDEHOSTPREDICT=sys.argv[5]
          HPDEPORTPREDICT=sys.argv[6]    
-        
+         tsslogging.locallogs("INFO", "STEP 6: Predictions started")
          while True:
           try:              
             performPrediction()      
-            time.sleep(.5)
+            time.sleep(1)
           except Exception as e:
+            tsslogging.locallogs("ERROR", "STEP 6: Predictions DAG in {} {}".format(os.path.basename(__file__),e))
             tsslogging.tsslogit("Predictions DAG in {} {}".format(os.path.basename(__file__),e), "ERROR" )                     
             tsslogging.git_push("/{}".format(repo),"Entry from {}".format(os.path.basename(__file__)),"origin")
             break
