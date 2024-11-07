@@ -35,7 +35,7 @@ default_args = {
  'pgptport' : '8001', # PrivateGPT listening on this port
  'preprocesstype' : '', # Leave as is 
  'partition' : '-1', # Leave as is 
- 'prompt': 'Do the device data show any malfunction or defects?', # Enter your prompt here
+ 'prompt': 'Do any of the values of the inbound or outbound packets look abnormal?', # Enter your prompt here
  'context' : 'This is IoT data from devices. The data are \
 anomaly probabilities for each IoT device. If voltage or current \
 probabilities are low, it is likely the device is not working properly.', # what is this data about? Provide context to PrivateGPT
