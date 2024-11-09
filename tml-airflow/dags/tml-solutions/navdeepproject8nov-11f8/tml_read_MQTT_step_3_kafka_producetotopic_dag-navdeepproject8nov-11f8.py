@@ -32,7 +32,7 @@ default_args = {
   'identifier' : 'TML solution',  
   'mqtt_broker' : 'f10fd264fefc4d72b3a1fffd529c94ed.s1.eu.hivemq.cloud', # <<<****** Enter MQTT broker i.e. test.mosquitto.org
   'mqtt_port' : '8883', # <<<******** Enter MQTT port i.e. 1883, 8883    (for HiveMQ cluster)
-  'mqtt_subscribe_topic' : '', # <<<******** enter name of MQTT to subscribe to i.e. tml/iot  
+  'mqtt_subscribe_topic' : 'tml/cybersecurity', # <<<******** enter name of MQTT to subscribe to i.e. tml/iot  
   'mqtt_enabletls': '0', # set 1=TLS, 0=no TLSS  
   'delay' : '7000', # << ******* 7000 millisecond maximum delay for VIPER to wait for Kafka to return confirmation message is received and written to topic
   'topicid' : '-999', # <<< ********* do not modify      
