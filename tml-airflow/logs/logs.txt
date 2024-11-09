@@ -7453,3 +7453,20 @@ Already up to date.
 [INFO 2024-11-08_20:48:18] TML Solution Studio: git add . Status: 
 [INFO 2024-11-08_20:48:18] TML Solution Studio: git commit -a Status for project navdeepproject8nov-11f8: fatal: paths 'project ...' with -a does not make sense
 [INFO 2024-11-08_20:48:18] TML Solution Studio: git push Status for project navdeepproject8nov-11f8: Everything up-to-date
+[INFO 2024-11-09_14:45:01] TML Solution Studio Started: DOCKERUSERNAME=navdeeptura, GITUSERNAME=navdeeptura, GITREPOURL=https://github.com/navdeeptura/raspberrypi, AIRFLOWPORT=9000
+[INFO 2024-11-09_14:45:02] TML Solution Studio: Docker Login Status: Error response from daemon: Get "https://registry-1.docker.io/v2/": unauthorized: incorrect username or password
+[INFO 2024-11-09_14:45:02] TML Solution Studio: Github Config Status: safe.directory=/raspberrypi
+pull.rebase=true
+user.email=navdeeptura@email
+user.name=navdeeptura
+core.repositoryformatversion=0
+core.filemode=true
+core.bare=false
+core.logallrefupdates=true
+remote.origin.url=https://github.com/navdeeptura/raspberrypi
+remote.origin.fetch=+refs/heads/main:refs/remotes/origin/main
+remote.origin.pushurl=https://<personal access token hidden>@github.com/navdeeptura/raspberrypi.git
+branch.main.remote=origin
+branch.main.merge=refs/heads/main
+[INFO 2024-11-09_14:45:02] TML Solution Studio: Github Remote Status: origin	https://github.com/navdeeptura/raspberrypi (fetch)
+origin	https://<personal access token hidden>@github.com/navdeeptura/raspberrypi.git (push)
