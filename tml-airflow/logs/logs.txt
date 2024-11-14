@@ -7679,3 +7679,4 @@ branch.main.merge=refs/heads/main
 origin	https://<personal access token hidden>@github.com/navdeeptura/raspberrypi.git (push)
 [INFO 2024-11-14_21:00:18] Deleting topic cisco-network-mainstream in tml_system_step_2_kafka_createtopic_dag-navdeepproject14nov2-11f8.py
 [INFO 2024-11-14_21:00:21] Deleting topic cisco-network-preprocess in tml_system_step_2_kafka_createtopic_dag-navdeepproject14nov2-11f8.py
+[INFO 2024-11-14_21:00:24] Deleting topic ml-data in tml_system_step_2_kafka_createtopic_dag-navdeepproject14nov2-11f8.py
