@@ -7564,3 +7564,13 @@ origin	https://<personal access token hidden>@github.com/navdeeptura/raspberrypi
 [INFO 2024-11-14_17:21:41] PrivateGPT Step 9 DAG in tml_system_step_9_privategpt_qdrant_dag-navdeepproject14nov-11f8.py
 [INFO 2024-11-14_17:21:53] Docker DAG in tml_system_step_8_deploy_solution_to_docker_dag-navdeepproject14nov-11f8.py
 [INFO 2024-11-14_17:23:47] {'name': ['Project with slug "navdeepproject14nov-11f8" already exists.']}
+[INFO 2024-11-14_17:34:44] TML Solution Studio: TML Project Creation: Creating new TML project: /raspberrypi/tml-airflow/dags/tml-solutions/navdeepproject14nov2-11f8
+[INFO 2024-11-14_17:34:44] TML Solution Studio: git pull --rebase --autostash origin main Status: From https://github.com/navdeeptura/raspberrypi
+ * branch            main       -> FETCH_HEAD
+Already up to date.
+[INFO 2024-11-14_17:35:20] TML Solution Studio: Starting Git commit process for project: navdeepproject14nov2-11f8
+[INFO 2024-11-14_17:35:20] TML Solution Studio: git commit -a Status for project navdeepproject14nov2-11f8: fatal: paths 'project ...' with -a does not make sense
+[INFO 2024-11-14_17:35:21] TML Solution Studio: git push origin main Status: Everything up-to-date
+[INFO 2024-11-14_17:35:21] TML Solution Studio: git add . Status: 
+[INFO 2024-11-14_17:35:21] TML Solution Studio: git commit -a Status for project navdeepproject14nov2-11f8: fatal: paths 'project ...' with -a does not make sense
+[INFO 2024-11-14_17:35:22] TML Solution Studio: git push Status for project navdeepproject14nov2-11f8: Everything up-to-date
