@@ -7558,3 +7558,4 @@ origin	https://<personal access token hidden>@github.com/navdeeptura/raspberrypi
 [INFO 2024-11-14_17:20:55] Deleting topic ml-data in tml_system_step_2_kafka_createtopic_dag-navdeepproject14nov-11f8.py
 [INFO 2024-11-14_17:20:58] Deleting topic prediction-data in tml_system_step_2_kafka_createtopic_dag-navdeepproject14nov-11f8.py
 [INFO 2024-11-14_17:21:02] Deleting topic cisco-network-privategpt in tml_system_step_2_kafka_createtopic_dag-navdeepproject14nov-11f8.py
+[INFO 2024-11-14_17:21:16] MQTT producing DAG in tml_read_MQTT_step_3_kafka_producetotopic_dag-navdeepproject14nov-11f8.py
