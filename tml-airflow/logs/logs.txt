@@ -7726,3 +7726,4 @@ origin	https://<personal access token hidden>@github.com/navdeeptura/raspberrypi
 [INFO 2024-11-28_21:30:45] Visualization DAG in tml_system_step_7_kafka_visualization_dag-navdeepproject14nov2-11f8.py
 [INFO 2024-11-28_21:30:58] PrivateGPT Step 9 DAG in tml_system_step_9_privategpt_qdrant_dag-navdeepproject14nov2-11f8.py
 [INFO 2024-11-28_21:31:07] Docker DAG in tml_system_step_8_deploy_solution_to_docker_dag-navdeepproject14nov2-11f8.py
+[INFO 2024-11-28_21:33:14] {'name': ['Project with slug "navdeepproject14nov2-11f8" already exists.']}
