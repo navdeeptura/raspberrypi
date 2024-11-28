@@ -7718,3 +7718,4 @@ origin	https://<personal access token hidden>@github.com/navdeeptura/raspberrypi
 [INFO 2024-11-28_21:21:50] {'name': ['Project with slug "navdeepproject14nov2-11f8" already exists.']}
 [INFO 2024-11-28_21:30:11] Deleting topic cisco-network-mainstream in tml_system_step_2_kafka_createtopic_dag-navdeepproject14nov2-11f8.py
 [INFO 2024-11-28_21:30:14] Deleting topic cisco-network-preprocess in tml_system_step_2_kafka_createtopic_dag-navdeepproject14nov2-11f8.py
+[INFO 2024-11-28_21:30:17] Deleting topic ml-data in tml_system_step_2_kafka_createtopic_dag-navdeepproject14nov2-11f8.py
