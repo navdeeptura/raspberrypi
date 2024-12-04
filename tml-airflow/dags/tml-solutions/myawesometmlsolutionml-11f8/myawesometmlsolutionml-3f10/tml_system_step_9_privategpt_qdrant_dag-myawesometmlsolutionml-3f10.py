@@ -50,7 +50,7 @@ probabilities are low, it is likely the device is not working properly.', # what
 
 ############################################################### DO NOT MODIFY BELOW ####################################################
 # Instantiate your DAG
-@dag(dag_id="tml_system_step_9_privategpt_qdrant_dag", default_args=default_args, tags=["tml_system_step_9_privategpt_qdrant_dag"], schedule=None,  catchup=False)
+@dag(dag_id="tml_system_step_9_privategpt_qdrant_dag_myawesometmlsolutionml-11f8", default_args=default_args, tags=["tml_system_step_9_privategpt_qdrant_dag_myawesometmlsolutionml-11f8"], schedule=None,  catchup=False)
 def startaiprocess():
     # Define tasks
     def empty():
@@ -346,8 +346,8 @@ def startprivategpt(**context):
 
        wn = windowname('ai',sname,sd)
        subprocess.run(["tmux", "new", "-d", "-s", "{}".format(wn)])
-#       if os.environ['TSS']=="0":
- #          subprocess.run(["tmux", "send-keys", "-t", "{}".format(wn), "export qip={}".format(os.environ['qip']), "ENTER"])
+       if os.environ['TSS']=="0":
+           subprocess.run(["tmux", "send-keys", "-t", "{}".format(wn), "export qip={}".format(os.environ['qip']), "ENTER"])
        subprocess.run(["tmux", "send-keys", "-t", "{}".format(wn), "cd /Viper-preprocess-pgpt", "ENTER"])
        subprocess.run(["tmux", "send-keys", "-t", "{}".format(wn), "python {} 1 {} {}{} {}".format(fullpath,VIPERTOKEN, HTTPADDR, VIPERHOST, VIPERPORT[1:]), "ENTER"])
 
@@ -385,7 +385,8 @@ if __name__ == '__main__':
             tsslogging.locallogs("INFO", "STEP 9: Success starting privateGPT.  Here is the run command: {}".format(buf))
 
           time.sleep(10)  # wait for containers to start
-          tsslogging.getqip()          
+          tsslogging.getqip() 
+        
         elif  os.environ["KUBE"] == "0":
           v,buf=qdrantcontainer()
           if buf != "":
@@ -405,6 +406,7 @@ if __name__ == '__main__':
 
           time.sleep(10)  # wait for containers to start         
           tsslogging.getqip() 
+         
         else:  
           tsslogging.locallogs("INFO", "STEP 9: [KUBERNETES] Starting privateGPT - LOOKS LIKE THIS IS RUNNING IN KUBERNETES")
           tsslogging.locallogs("INFO", "STEP 9: [KUBERNETES] Make sure you have applied the private GPT YAML files and have the privateGPT Pod running")

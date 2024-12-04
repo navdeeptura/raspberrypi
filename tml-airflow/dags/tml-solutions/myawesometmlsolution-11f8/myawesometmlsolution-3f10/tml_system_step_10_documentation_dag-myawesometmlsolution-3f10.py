@@ -25,7 +25,7 @@ default_args = {
 
 ############################################################### DO NOT MODIFY BELOW ####################################################
 # Instantiate your DAG
-@dag(dag_id="tml_system_step_10_documentation_dag", default_args=default_args, tags=["tml_system_step_10_documentation_dag"], schedule=None,  catchup=False)
+@dag(dag_id="tml_system_step_10_documentation_dag_myawesometmlsolution-11f8", default_args=default_args, tags=["tml_system_step_10_documentation_dag_myawesometmlsolution-11f8"], schedule=None,  catchup=False)
 def startdocumentation():
     # Define tasks
     def empty():
@@ -663,10 +663,10 @@ def generatedoc(**context):
     doparse("/{}/docs/source/kube.rst".format(sname), ["--solutionnamefile--;{}.yml".format(sname)])
     doparse("/{}/docs/source/kube.rst".format(sname), ["--solutionname--;{}".format(sname)])
     if pgptcontainername == None:
-            kcmd = "kubectl create -f mysql-storage.yml -f mysql-db-deployment.yml -f {}.yml".format(sname)
+            kcmd = "kubectl apply -f mysql-storage.yml -f mysql-db-deployment.yml -f {}.yml".format(sname)
             doparse("/{}/docs/source/kube.rst".format(sname), ["--kubectl--;{}".format(kcmd)])
     else:
-            kcmd = "kubectl create -f mysql-storage.yml -f mysql-db-deployment.yml -f qdrant.yml -f privategpt.yml -f {}.yml".format(sname)
+            kcmd = "kubectl apply -f mysql-storage.yml -f mysql-db-deployment.yml -f qdrant.yml -f privategpt.yml -f {}.yml".format(sname)
             doparse("/{}/docs/source/kube.rst".format(sname), ["--kubectl--;{}".format(kcmd)])
     
     kcmd2=tsslogging.genkubeyaml(sname,containername,TMLCLIENTPORT[1:],solutionairflowport[1:],solutionvipervizport[1:],solutionexternalport[1:],
