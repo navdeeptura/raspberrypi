@@ -7756,3 +7756,4 @@ Already up to date.
 [INFO 2024-12-04_23:25:59] TML Solution Studio: git push Status for project groupproject4dec-11f8: Everything up-to-date
 [INFO 2024-12-04_23:36:34] Deleting topic cisco-network-mainstream in tml_system_step_2_kafka_createtopic_dag-groupproject4dec-11f8.py
 [INFO 2024-12-04_23:36:38] Deleting topic iot-preprocess in tml_system_step_2_kafka_createtopic_dag-groupproject4dec-11f8.py
+[INFO 2024-12-04_23:36:41] Deleting topic iot-preprocess2 in tml_system_step_2_kafka_createtopic_dag-groupproject4dec-11f8.py
