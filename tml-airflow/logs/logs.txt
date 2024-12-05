@@ -7900,3 +7900,4 @@ origin	https://<personal access token hidden>@github.com/navdeeptura/raspberrypi
 [INFO 2024-12-05_01:24:14] Deleting topic cisco-network-mainstream in tml_system_step_2_kafka_createtopic_dag-navdeepproject14nov2-11f8.py
 [INFO 2024-12-05_01:24:16] Deleting topic cisco-network-preprocess in tml_system_step_2_kafka_createtopic_dag-navdeepproject14nov2-11f8.py
 [INFO 2024-12-05_01:24:18] Deleting topic ml-data in tml_system_step_2_kafka_createtopic_dag-navdeepproject14nov2-11f8.py
+[INFO 2024-12-05_01:24:20] Deleting topic prediction-data in tml_system_step_2_kafka_createtopic_dag-navdeepproject14nov2-11f8.py
