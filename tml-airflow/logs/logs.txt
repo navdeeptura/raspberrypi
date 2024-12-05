@@ -7817,3 +7817,4 @@ origin	https://<personal access token hidden>@github.com/navdeeptura/raspberrypi
 [INFO 2024-12-05_00:45:04] Deleting topic iot-preprocess2 in tml_system_step_2_kafka_createtopic_dag-groupproject4dec-11f8.py
 [INFO 2024-12-05_00:45:09] Deleting topic ml-data in tml_system_step_2_kafka_createtopic_dag-groupproject4dec-11f8.py
 [INFO 2024-12-05_00:45:15] Deleting topic cisco-network-preprocess in tml_system_step_2_kafka_createtopic_dag-groupproject4dec-11f8.py
+[INFO 2024-12-05_00:45:23] Deleting topic cisco-network-privategpt in tml_system_step_2_kafka_createtopic_dag-groupproject4dec-11f8.py
