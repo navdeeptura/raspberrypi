@@ -7935,3 +7935,20 @@ origin	https://<personal access token hidden>@github.com/navdeeptura/raspberrypi
 [INFO 2024-12-05_01:34:33] PrivateGPT Step 9 DAG in tml_system_step_9_privategpt_qdrant_dag-navdeepproject14nov2-11f8.py
 [INFO 2024-12-05_01:34:44] Docker DAG in tml_system_step_8_deploy_solution_to_docker_dag-navdeepproject14nov2-11f8.py
 [INFO 2024-12-05_01:39:18] {'name': ['Project with slug "navdeepproject14nov2-11f8" already exists.']}
+[INFO 2024-12-05_16:21:28] TML Solution Studio Started: DOCKERUSERNAME=navdeeptura, GITUSERNAME=navdeeptura, GITREPOURL=https://github.com/navdeeptura/raspberrypi, AIRFLOWPORT=9000
+[INFO 2024-12-05_16:21:28] TML Solution Studio: Docker Login Status: WARNING! Your password will be stored unencrypted in /root/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+Login Succeeded
+[INFO 2024-12-05_16:21:28] TML Solution Studio: Github Config Status: core.repositoryformatversion=0
+core.filemode=true
+core.bare=false
+core.logallrefupdates=true
+remote.origin.url=https://github.com/navdeeptura/raspberrypi
+remote.origin.fetch=+refs/heads/main:refs/remotes/origin/main
+remote.origin.pushurl=https://<personal access token hidden>@github.com/navdeeptura/raspberrypi.git
+branch.main.remote=origin
+branch.main.merge=refs/heads/main
+[INFO 2024-12-05_16:21:28] TML Solution Studio: Github Remote Status: origin	https://github.com/navdeeptura/raspberrypi (fetch)
+origin	https://<personal access token hidden>@github.com/navdeeptura/raspberrypi.git (push)
