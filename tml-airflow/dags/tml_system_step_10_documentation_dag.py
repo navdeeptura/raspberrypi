@@ -253,6 +253,7 @@ def generatedoc(**context):
     pathtotmlattrs = context['ti'].xcom_pull(task_ids='step_4_solution_task_preprocess',key="{}_pathtotmlattrs".format(sname))
     identifier = context['ti'].xcom_pull(task_ids='step_4_solution_task_preprocess',key="{}_identifier".format(sname))
     jsoncriteria = context['ti'].xcom_pull(task_ids='step_4_solution_task_preprocess',key="{}_jsoncriteria".format(sname))
+    maxrows4 = context['ti'].xcom_pull(task_ids='step_4_solution_task_preprocess',key="{}_maxrows".format(sname))
 
     if preprocess_data_topic:
         subprocess.call(["sed", "-i", "-e",  "s/--raw_data_topic--/{}/g".format(raw_data_topic), "/{}/docs/source/details.rst".format(sname)])
@@ -285,6 +286,7 @@ def generatedoc(**context):
     pathtotmlattrs = context['ti'].xcom_pull(task_ids='step_4b_solution_task_preprocess',key="{}_pathtotmlattrs".format(sname))
     identifier = context['ti'].xcom_pull(task_ids='step_4b_solution_task_preprocess',key="{}_identifier".format(sname))
     jsoncriteria = context['ti'].xcom_pull(task_ids='step_4b_solution_task_preprocess',key="{}_jsoncriteria".format(sname))
+    maxrows4b = context['ti'].xcom_pull(task_ids='step_4b_solution_task_preprocess',key="{}_maxrows".format(sname))
 
     if preprocess_data_topic:
         subprocess.call(["sed", "-i", "-e",  "s/--raw_data_topic2--/{}/g".format(raw_data_topic), "/{}/docs/source/details.rst".format(sname)])
@@ -510,7 +512,7 @@ def generatedoc(**context):
     
     doparse("/{}/docs/source/operating.rst".format(sname), ["--dockerrun--;{}".format(dockerrun),"--dockercontainer--;{} ({})".format(containername, hurl)])
     doparse("/{}/docs/source/details.rst".format(sname), ["--dockerrun--;{}".format(dockerrun),"--dockercontainer--;{} ({})".format(containername, hurl)])
-    
+    step9rollbackoffset=-1
     if pgptcontainername != None:
         privategptrun = "docker run -d -p {}:{} --net=host --gpus all --env PORT={} --env GPU=1 --env COLLECTION={} --env WEB_CONCURRENCY={} --env CUDA_VISIBLE_DEVICES={} {}".format(pgptport[1:],pgptport[1:],pgptport[1:],pcollection,pconcurrency[1:],pcuda[1:],pgptcontainername)
 
@@ -525,6 +527,7 @@ def generatedoc(**context):
         doparse("/{}/docs/source/details.rst".format(sname), ["--vectordbcollectionname--;{}".format(pcollection)])
         doparse("/{}/docs/source/details.rst".format(sname), ["--offset--;{}".format(poffset[1:])])
         doparse("/{}/docs/source/details.rst".format(sname), ["--rollbackoffset--;{}".format(prollbackoffset[1:])])
+        step9rollbackoffset=prollbackoffset[1:]
         doparse("/{}/docs/source/details.rst".format(sname), ["--topicid--;{}".format(ptopicid[1:])])
         doparse("/{}/docs/source/details.rst".format(sname), ["--enabletls--;{}".format(penabletls[1:])])
         doparse("/{}/docs/source/details.rst".format(sname), ["--partition--;{}".format(ppartition[1:])])
@@ -663,15 +666,38 @@ def generatedoc(**context):
     doparse("/{}/docs/source/kube.rst".format(sname), ["--solutionnamefile--;{}.yml".format(sname)])
     doparse("/{}/docs/source/kube.rst".format(sname), ["--solutionname--;{}".format(sname)])
     if pgptcontainername == None:
-            kcmd = "kubectl create -f mysql-storage.yml -f mysql-db-deployment.yml -f {}.yml".format(sname)
+            kcmd = "kubectl apply -f secrets.yml -f mysql-storage.yml -f mysql-db-deployment.yml -f {}.yml".format(sname)
             doparse("/{}/docs/source/kube.rst".format(sname), ["--kubectl--;{}".format(kcmd)])
     else:
-            kcmd = "kubectl create -f mysql-storage.yml -f mysql-db-deployment.yml -f qdrant.yml -f privategpt.yml -f {}.yml".format(sname)
+            kcmd = "kubectl apply -f secrets.yml -f mysql-storage.yml -f mysql-db-deployment.yml -f qdrant.yml -f privategpt.yml -f {}.yml".format(sname)
             doparse("/{}/docs/source/kube.rst".format(sname), ["--kubectl--;{}".format(kcmd)])
-    
+    if maxrows4:
+      step4maxrows=maxrows4[1:]
+    else:
+      step4maxrows=-1
+
+    if maxrows4b: 
+      step4bmaxrows=maxrows4b[1:]
+    else: 
+      step4bmaxrows=-1 
+
+    if rollbackoffsets:
+      step5rollbackoffsets=rollbackoffsets[1:]
+    else:
+      step5rollbackoffsets=-1
+
+    if maxrows:
+      step6maxrows=maxrows[1:]
+    else:
+      step6maxrows=-1
+     
+    step1solutiontitle=stitle
+    step1description=sdesc
+
     kcmd2=tsslogging.genkubeyaml(sname,containername,TMLCLIENTPORT[1:],solutionairflowport[1:],solutionvipervizport[1:],solutionexternalport[1:],
                        sd,os.environ['GITUSERNAME'],os.environ['GITREPOURL'],chipmain,os.environ['DOCKERUSERNAME'],
-                       externalport[1:],kafkacloudusername,mqttusername,airflowport[1:],vipervizport[1:])
+                       externalport[1:],kafkacloudusername,mqttusername,airflowport[1:],vipervizport[1:],
+                       step4maxrows,step4bmaxrows,step5rollbackoffsets,step6maxrows,step1solutiontitle,step1description,step9rollbackoffset)
 
     doparse("/{}/docs/source/kube.rst".format(sname), ["--solutionnamecode--;{}".format(kcmd2)])
 
